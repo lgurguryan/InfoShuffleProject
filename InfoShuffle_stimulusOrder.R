@@ -76,7 +76,11 @@ for (i in 1:5) {
 save_path <- "/Users/laurigurguryan/Desktop/InfoShuffleProject"
 
 # Define encoding questions
-encoding_questions <- c("encodingQ1", "encodingQ2", "encodingQ3", "encodingQ4", "encodingQ5")
+encoding_questions <- c("Do you know the word for this item in any other languages?", 
+                        "Would this item fit in a shoe box?", 
+                        "Is this item man-made?", 
+                        "Do you find this item to be pleasant?", 
+                        "Does this item contain any metal?")
 
 for (i in 1:10) {
   seq <- sequences[[i]]
@@ -201,7 +205,7 @@ for (i in 1:10) {
   
   # Replace the sequence number in the filename with the new letter (1=a, 2=b...)
   df_sorted$image_filename <- gsub(
-    pattern = paste0("sequence", i, "_stimuli/"),
+    pattern = paste0("sequence_", i, "_stimuli/"),
     replacement = paste0("sequence_", seq_names[i], "_stimuli/"),
     x = df_sorted$image_filename
   )
@@ -234,7 +238,7 @@ for (i in 1:10) {
   
   # Replace sequence number in left/right image filenames
   test_df$left_image <- gsub(
-    pattern = paste0("sequence", i, "_stimuli/"),
+    pattern = paste0("sequence_", i, "_stimuli/"),
     replacement = paste0("sequence_", seq_names[i], "_stimuli/"),
     x = test_df$left_image
   )
@@ -252,6 +256,7 @@ for (i in 1:10) {
   new_test_csv <- file.path(save_path, paste0("sequence_", seq_names[i], "_test.csv"))
   write.csv(test_df, file = new_test_csv, row.names = FALSE, quote = FALSE)
 }
+
 ## CREATE BLOCKS V1/V2 ##
 
 # Define save path
