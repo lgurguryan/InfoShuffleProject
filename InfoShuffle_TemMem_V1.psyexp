@@ -419,8 +419,8 @@
         <Param val="current_number = Math.random.randint(1, 99);&amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="# Generate random numbers &amp;#10;current_number = random.randint(1, 99)" valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="Auto-&gt;JS" valType="str" updates="None" name="Code Type"/>
-        <Param val="# Run for xx seconds&amp;#10;if globalClock.getTime() - distractor_start_time &gt; 10: &amp;#10;    continueRoutine = False " valType="extendedCode" updates="constant" name="Each Frame"/>
-        <Param val="if (((globalClock.getTime() - distractor_start_time) &gt; 10)) {&amp;#10;    continueRoutine = false;&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="# Run for xx seconds&amp;#10;if globalClock.getTime() - distractor_start_time &gt; 30: &amp;#10;    continueRoutine = False " valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="if (((globalClock.getTime() - distractor_start_time) &gt; 30)) {&amp;#10;    continueRoutine = false;&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
