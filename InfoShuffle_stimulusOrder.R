@@ -77,9 +77,9 @@ save_path <- "/Users/laurigurguryan/Desktop/InfoShuffleProject"
 
 # Define encoding questions
 encoding_questions <- c("Do you know the word for this item in any other languages?", 
-                        "Would this item fit in a shoe box?", 
                         "Is this item man-made?", 
-                        "Do you find this item to be pleasant?", 
+                        "Do you find this item to be pleasant?",
+                        "Would this item fit in a shoe box?",
                         "Does this item contain any metal?")
 
 for (i in 1:10) {
@@ -244,7 +244,7 @@ for (i in 1:10) {
   )
   
   test_df$right_image <- gsub(
-    pattern = paste0("sequence", i, "_stimuli/"),
+    pattern = paste0("sequence_", i, "_stimuli/"),
     replacement = paste0("sequence_", seq_names[i], "_stimuli/"),
     x = test_df$right_image
   )
