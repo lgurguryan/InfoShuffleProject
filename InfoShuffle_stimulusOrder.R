@@ -156,13 +156,15 @@ for (i in 1:10) {
     correct_answer <- ifelse(left_pos == pos[1], "left", "right")
     
     # Determine pair type
-    pairType <- if (any(sapply(across_boundary, function(x) identical(x, pos)))) {
-      "across-boundary"
-    } else if (any(sapply(within_boundary, function(x) identical(x, pos)))) {
-      "within-boundary"
-    } else {
-      NA
-    }
+    # pairType <- if (any(sapply(across_boundary, function(x) identical(x, pos)))) {
+    #   "across-boundary"
+    # } else if (any(sapply(within_boundary, function(x) identical(x, pos)))) {
+    #   "within-boundary"
+    # } else {
+    #   NA
+    # }
+    pairType <- "across-boundary"  
+    
     
     data.frame(
       left_image = left_img,
@@ -228,34 +230,104 @@ for (i in 1:10) {
   write.csv(map_df, file = map_file, row.names = FALSE, quote = FALSE)
 }
 
-# Test pairs
-seq_names <- letters[1:10]  # a, b, c, ..., j
+# # Test pairs
+# seq_names <- letters[1:10]  # a, b, c, ..., j
+# 
+# for (i in 1:10) {
+#   # Load the original randomized test CSV
+#   orig_test_csv <- file.path(save_path, paste0("sequence_", i, "_test.csv"))
+#   test_df <- read.csv(orig_test_csv, stringsAsFactors = FALSE)
+#   
+#   # Replace sequence number in left/right image filenames
+#   test_df$left_image <- gsub(
+#     pattern = paste0("sequence_", i, "_stimuli/"),
+#     replacement = paste0("sequence_", seq_names[i], "_stimuli/"),
+#     x = test_df$left_image
+#   )
+#   
+#   test_df$right_image <- gsub(
+#     pattern = paste0("sequence_", i, "_stimuli/"),
+#     replacement = paste0("sequence_", seq_names[i], "_stimuli/"),
+#     x = test_df$right_image
+#   )
+#   
+#   # Set all pairType to "across-boundary"
+#   test_df$pairType <- "across-boundary"
+#   
+#   # Save as new test CSV for sequences a-j
+#   new_test_csv <- file.path(save_path, paste0("sequence_", seq_names[i], "_test.csv"))
+#   write.csv(test_df, file = new_test_csv, row.names = FALSE, quote = FALSE)
+# }
+
+# Test pairs for BLOCKED sequences
+
+save_path <- "/Users/laurigurguryan/Desktop/InfoShuffleProject"
+
+# Sequence names a–j
+seq_names <- letters[1:10]
+
+# Define test positions (same as shuffled)
+test_positions <- list(c(5, 6), c(10, 11), c(15, 16), c(20, 21), 
+                       c(2, 3), c(7, 8), c(12, 13), c(18, 19), c(23, 24))
+
+set.seed(42)
 
 for (i in 1:10) {
-  # Load the original randomized test CSV
-  orig_test_csv <- file.path(save_path, paste0("sequence_", i, "_test.csv"))
-  test_df <- read.csv(orig_test_csv, stringsAsFactors = FALSE)
+  # Load the blocked sequence (a–j)
+  seq_csv <- file.path(save_path, paste0("sequence_", seq_names[i], ".csv"))
+  df <- read.csv(seq_csv, stringsAsFactors = FALSE)
   
-  # Replace sequence number in left/right image filenames
-  test_df$left_image <- gsub(
-    pattern = paste0("sequence_", i, "_stimuli/"),
-    replacement = paste0("sequence_", seq_names[i], "_stimuli/"),
-    x = test_df$left_image
-  )
+  # Extract filenames (without .jpg and folder)
+  seq <- sub(".jpg$", "", basename(df$image_filename))
   
-  test_df$right_image <- gsub(
-    pattern = paste0("sequence_", i, "_stimuli/"),
-    replacement = paste0("sequence_", seq_names[i], "_stimuli/"),
-    x = test_df$right_image
-  )
+  prefix <- paste0("sequence_", seq_names[i], "_stimuli/")
   
-  # Set all pairType to "across-boundary"
-  test_df$pairType <- "across-boundary"
+  test_data <- lapply(test_positions, function(pos) {
+    img1 <- paste0(prefix, seq[pos[1]], ".jpg")
+    img2 <- paste0(prefix, seq[pos[2]], ".jpg")
+    
+    pair_imgs <- c(img1, img2)
+    pair_pos  <- c(pos[1], pos[2])
+    
+    # Randomize left/right order
+    shuffled_indices <- sample(2)
+    left_img <- pair_imgs[shuffled_indices[1]]
+    right_img <- pair_imgs[shuffled_indices[2]]
+    left_pos <- pair_pos[shuffled_indices[1]]
+    right_pos <- pair_pos[shuffled_indices[2]]
+    
+    correct_answer <- ifelse(left_pos == pos[1], "left", "right")
+    
+    # Determine pair type
+    pairType <- if (any(sapply(across_boundary, function(x) identical(x, pos)))) {
+       "across-boundary"
+     } else if (any(sapply(within_boundary, function(x) identical(x, pos)))) {
+       "within-boundary"
+     } else {
+      NA
+     }
+    
+    data.frame(
+      left_image = left_img,
+      right_image = right_img,
+      left_original_position = left_pos,
+      right_original_position = right_pos,
+      correct_answer = correct_answer,
+      pairType = pairType,   
+      stringsAsFactors = FALSE
+    )
+  })
   
-  # Save as new test CSV for sequences a-j
-  new_test_csv <- file.path(save_path, paste0("sequence_", seq_names[i], "_test.csv"))
-  write.csv(test_df, file = new_test_csv, row.names = FALSE, quote = FALSE)
+  test_df <- do.call(rbind, test_data)
+  
+  # Randomize row order
+  test_df <- test_df[sample(nrow(test_df)), ]
+  
+  # Save new blocked test CSV
+  test_file_path <- file.path(save_path, paste0("sequence_", seq_names[i], "_test.csv"))
+  write.csv(test_df, file = test_file_path, row.names = FALSE, quote = FALSE)
 }
+
 
 ## CREATE BLOCKS V1/V2 ##
 
@@ -307,3 +379,31 @@ blocks_V2 <- data.frame(
 # Save CSV
 write.csv(blocks_V2, file = file.path(save_path, "blocks_V2.csv"),
           row.names = FALSE, quote = FALSE)
+
+
+## VERIFY 
+# Define the folder where all test CSVs are stored
+save_path <- "/Users/laurigurguryan/Desktop/InfoShuffleProject"
+
+# List all files ending with "_test.csv"
+test_files <- list.files(save_path, pattern = "_test\\.csv$", full.names = TRUE)
+
+# Read all test CSVs and combine into one data frame
+all_test_csv <- do.call(rbind, lapply(test_files, read.csv, stringsAsFactors = FALSE))
+
+head(all_test_csv)
+
+# Create 'right_cat' by extracting the part after the last "/"
+all_test_csv$right_cat <- sub(".*/", "", all_test_csv$right_image)
+all_test_csv$left_cat <- sub(".*/", "", all_test_csv$left_image)
+
+all_test_csv$right_cat <- sub("-.*", "", all_test_csv$right_cat)
+all_test_csv$left_cat  <- sub("-.*", "", all_test_csv$left_cat)
+
+# Extract numeric part of the category
+all_test_csv$right_num <- as.numeric(sub("cat", "", all_test_csv$right_cat))
+all_test_csv$left_num  <- as.numeric(sub("cat", "", all_test_csv$left_cat))
+
+# Create CHECK column
+all_test_csv$CHECK <- abs(all_test_csv$right_num - all_test_csv$left_num) == 1
+
