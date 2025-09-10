@@ -380,30 +380,3 @@ blocks_V2 <- data.frame(
 write.csv(blocks_V2, file = file.path(save_path, "blocks_V2.csv"),
           row.names = FALSE, quote = FALSE)
 
-
-## VERIFY 
-# Define the folder where all test CSVs are stored
-save_path <- "/Users/laurigurguryan/Desktop/InfoShuffleProject"
-
-# List all files ending with "_test.csv"
-test_files <- list.files(save_path, pattern = "_test\\.csv$", full.names = TRUE)
-
-# Read all test CSVs and combine into one data frame
-all_test_csv <- do.call(rbind, lapply(test_files, read.csv, stringsAsFactors = FALSE))
-
-head(all_test_csv)
-
-# Create 'right_cat' by extracting the part after the last "/"
-all_test_csv$right_cat <- sub(".*/", "", all_test_csv$right_image)
-all_test_csv$left_cat <- sub(".*/", "", all_test_csv$left_image)
-
-all_test_csv$right_cat <- sub("-.*", "", all_test_csv$right_cat)
-all_test_csv$left_cat  <- sub("-.*", "", all_test_csv$left_cat)
-
-# Extract numeric part of the category
-all_test_csv$right_num <- as.numeric(sub("cat", "", all_test_csv$right_cat))
-all_test_csv$left_num  <- as.numeric(sub("cat", "", all_test_csv$left_cat))
-
-# Create CHECK column
-all_test_csv$CHECK <- abs(all_test_csv$right_num - all_test_csv$left_num) == 1
-
