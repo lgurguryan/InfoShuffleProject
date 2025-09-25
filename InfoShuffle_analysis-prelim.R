@@ -173,7 +173,61 @@ ggplot(subject_stats, aes(x = pairType, y = mean_corr, fill = condition)) +
   theme_minimal() +
   theme(legend.position = "none")
 
-# Reaction times 
+# Creat df with info about the test pairs 
+pairs_df <- data.frame(
+  pair_id = 1:9,
+  pos1 = c(2, 5, 7, 10, 12, 15, 18, 20, 23),
+  pos2 = c(3, 6, 8, 11, 13, 16, 19, 21, 24)
+)
+
+print(pairs_df)
+
+# Function to get pair_id 
+get_pair_id <- function(left_pos, right_pos, pairs_df) {
+  # Check which row in pairs_df matches the positions (order doesn't matter)
+  match_row <- pairs_df[
+    (pairs_df$pos1 == left_pos & pairs_df$pos2 == right_pos) |
+      (pairs_df$pos1 == right_pos & pairs_df$pos2 == left_pos), 
+  ]
+  
+  if(nrow(match_row) == 0) return(NA) 
+  return(match_row$pair_id)
+}
+
+# Apply function to test_df
+test_df$pair_id <- apply(test_df[, c("left_original_position", "right_original_position")], 1, 
+                         function(x) get_pair_id(x[1], x[2], pairs_df))
+
+# Summary table as a function of pair_id (overall position)
+
+pair_summary <- test_df %>%
+  group_by(pairType, condition, pair_id) %>%
+  summarise(
+    mean_corr = mean(TestLoop.TestResp.corr, na.rm = TRUE),
+    sd_corr = sd(TestLoop.TestResp.corr, na.rm = TRUE),
+    n = n(),
+    se_corr = sd_corr / sqrt(n),
+    .groups = "drop"
+  )
+
+
+dodge <- position_dodge(width = 0.8)
+
+ggplot(pair_summary, aes(x = pairType, y = mean_corr, fill = condition)) +
+  geom_bar(stat = "identity", width = 0.7, position = dodge) +   # width < dodge width
+  geom_errorbar(aes(ymin = mean_corr - se_corr, ymax = mean_corr + se_corr),
+                width = 0.2, position = dodge) +
+  facet_wrap(~pair_id, scales = "free_x") +
+  labs(
+    x = "Pair type",
+    y = "Mean correct response",
+    title = "Mean correct response as a function of position"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+
+##################
+# Reaction times #
 test_df <- test_df %>%
   mutate(TestLoop.TestResp.rt = as.numeric(TestLoop.TestResp.rt))
 
