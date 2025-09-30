@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v2024.2.1),
-    on Thu Sep 25 14:19:56 2025
+    on Tue Sep 30 16:05:54 2025
 If you publish work using this script the most relevant publication is:
 
     Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, Kastman E, Lindeløv JK. (2019) 
@@ -897,13 +897,6 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
         languageStyle='LTR',
         depth=-1.0);
     welcomeResp = keyboard.Keyboard(deviceName='welcomeResp')
-    WelcomeText2 = visual.TextStim(win=win, name='WelcomeText2',
-        text='Press SPACEBAR to continue',
-        font='Arial',
-        pos=(0, -0.4), draggable=False, height=0.05, wrapWidth=None, ori=0.0, 
-        color='white', colorSpace='rgb', opacity=None, 
-        languageStyle='LTR',
-        depth=-3.0);
     
     # --- Initialize components for Routine "StudyReminder" ---
     StudyReminderText = visual.TextStim(win=win, name='StudyReminderText',
@@ -5046,13 +5039,13 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
         # create an object to store info about Routine welcome
         welcome = data.Routine(
             name='welcome',
-            components=[welcomeText, welcomeResp, WelcomeText2],
+            components=[welcomeText, welcomeResp],
         )
         welcome.status = NOT_STARTED
         continueRoutine = True
         # update component parameters for each repeat
         # Run 'Begin Routine' code from code_8
-        welcome_message = "Welcome to Block " + str(block_num) + "\n\nPress SPACE to begin."
+        welcome_message = "Welcome to Block " + str(block_num) + "\n\nPress SPACEBAR to begin."
         
         welcomeText.setText(welcome_message
         )
@@ -5140,26 +5133,6 @@ def run(expInfo, thisExp, win, globalClock=None, thisSession=None):
                     welcomeResp.duration = _welcomeResp_allKeys[-1].duration
                     # a response ends the routine
                     continueRoutine = False
-            
-            # *WelcomeText2* updates
-            
-            # if WelcomeText2 is starting this frame...
-            if WelcomeText2.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-                # keep track of start time/frame for later
-                WelcomeText2.frameNStart = frameN  # exact frame index
-                WelcomeText2.tStart = t  # local t and not account for scr refresh
-                WelcomeText2.tStartRefresh = tThisFlipGlobal  # on global time
-                win.timeOnFlip(WelcomeText2, 'tStartRefresh')  # time at next scr refresh
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'WelcomeText2.started')
-                # update status
-                WelcomeText2.status = STARTED
-                WelcomeText2.setAutoDraw(True)
-            
-            # if WelcomeText2 is active this frame...
-            if WelcomeText2.status == STARTED:
-                # update params
-                pass
             
             # check for quit (typically the Esc key)
             if defaultKeyboard.getKeys(keyList=["escape"]):
