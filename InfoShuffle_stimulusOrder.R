@@ -380,3 +380,198 @@ blocks_V2 <- data.frame(
 write.csv(blocks_V2, file = file.path(save_path, "blocks_V2.csv"),
           row.names = FALSE, quote = FALSE)
 
+
+## POWER
+library(pwr)
+pwr.t.test(d = 0.2, power = 0.80, sig.level = 0.05, type = "paired", alternative = "two.sided")
+
+
+########################
+########################
+## RECOGNTION MEMORY ##
+########################
+########################
+
+# Create mapping
+option1_seq <- 1:10
+option2_seq <- letters[1:10]
+
+map_A <- data.frame(
+  actual = paste0("sequence_", option1_seq),
+  lure   = paste0("sequence_", option2_seq),
+  stringsAsFactors = FALSE
+)
+
+map_B <- data.frame(
+  actual = paste0("sequence_", option2_seq),
+  lure   = paste0("sequence_", option1_seq),
+  stringsAsFactors = FALSE
+)
+
+mapping_table <- rbind(map_A, map_B)
+
+# Path
+save_path <- "/Users/laurigurguryan/Desktop/InfoShuffleProject"
+
+seq_numbers <- 1:10
+seq_letters <- letters[1:10]
+
+# Create list 
+test_recog_list_1_10 <- list()
+test_recog_list_a_j <- list()
+
+
+# Function to get sequence ID from filename
+get_sequence_id <- function(filename, mapping_actuals) {
+  matched <- mapping_actuals[sapply(mapping_actuals, function(x) grepl(x, filename))]
+  if (length(matched) == 0) return(NA)
+  return(matched[1])
+}
+
+
+# Function to rando assign left/right, IDs, and correct answer 
+set.seed(42)
+
+assign_left_right_with_correct <- function(df) {
+  df$left_image  <- NA
+  df$right_image <- NA
+  df$left_id     <- NA
+  df$right_id    <- NA
+  df$correct     <- NA
+  
+  for (i in 1:nrow(df)) {
+    if (sample(c(TRUE, FALSE), 1)) {
+      # studied_image on left
+      df$left_image[i]  <- df$studied_image[i]
+      df$right_image[i] <- df$lure_image[i]
+      df$left_id[i]     <- "studied"
+      df$right_id[i]    <- "lure"
+      df$correct[i]     <- "left"
+    } else {
+      # studied_image on right
+      df$left_image[i]  <- df$lure_image[i]
+      df$right_image[i] <- df$studied_image[i]
+      df$left_id[i]     <- "lure"
+      df$right_id[i]    <- "studied"
+      df$correct[i]     <- "right"
+    }
+  }
+  
+  return(df)
+}
+
+
+# Apply to sequences 1–10
+for (i in seq_numbers) {
+  seq_name <- paste0("sequence_", i)
+  test_file <- file.path(save_path, paste0(seq_name, "_test.csv"))
+  
+  test_df <- read.csv(test_file, stringsAsFactors = FALSE)
+  
+  # Combine left and right images in 1 column 
+  studied_images <- c(test_df$left_image, test_df$right_image)
+  recog_df <- data.frame(studied_image = studied_images, stringsAsFactors = FALSE)
+  
+  # Map lure images
+  sequence_ids <- sapply(recog_df$studied_image, get_sequence_id, mapping_actuals = mapping_table$actual)
+  lures <- mapping_table$lure[match(sequence_ids, mapping_table$actual)]
+  
+  recog_df$lure_image <- mapply(
+    function(img, from, to) sub(from, to, img),
+    img  = recog_df$studied_image,
+    from = sequence_ids,
+    to   = lures,
+    USE.NAMES = FALSE
+  )
+  
+  # Assign left/right and add IDs + correct
+  recog_df <- assign_left_right_with_correct(recog_df)
+  
+  # Save
+  test_recog_list_1_10[[seq_name]] <- recog_df
+}
+
+
+# Apply to sequences a–j
+for (letter in seq_letters) {
+  seq_name <- paste0("sequence_", letter)
+  test_file <- file.path(save_path, paste0(seq_name, "_test.csv"))
+  
+  test_df <- read.csv(test_file, stringsAsFactors = FALSE)
+  
+  # Combine left and right images into 1 column
+  studied_images <- c(test_df$left_image, test_df$right_image)
+  recog_df <- data.frame(studied_image = studied_images, stringsAsFactors = FALSE)
+  
+  # Map lure images
+  sequence_ids <- sapply(recog_df$studied_image, get_sequence_id, mapping_actuals = mapping_table$actual)
+  lures <- mapping_table$lure[match(sequence_ids, mapping_table$actual)]
+  
+  recog_df$lure_image <- mapply(
+    function(img, from, to) sub(from, to, img),
+    img  = recog_df$studied_image,
+    from = sequence_ids,
+    to   = lures,
+    USE.NAMES = FALSE
+  )
+  
+  # Assign left/right and add IDs + correct
+  recog_df <- assign_left_right_with_correct(recog_df)
+  
+  # Save
+  test_recog_list_a_j[[seq_name]] <- recog_df
+}
+
+
+# Save CSVs for sequences 1–10
+for (seq_name in names(test_recog_list_1_10)) {
+  df <- test_recog_list_1_10[[seq_name]]
+  file_name <- paste0(seq_name, "_test_recog.csv")
+  write.csv(df, file = file.path(save_path, file_name),
+            row.names = FALSE, quote = FALSE)
+}
+
+# Save CSVs for sequences a–j
+for (seq_name in names(test_recog_list_a_j)) {
+  df <- test_recog_list_a_j[[seq_name]]
+  file_name <- paste0(seq_name, "_test_recog.csv")
+  write.csv(df, file = file.path(save_path, file_name),
+            row.names = FALSE, quote = FALSE)
+}
+
+
+# Check 
+head(test_recog_list_1_10[["sequence_1"]])
+head(test_recog_list_a_j[["sequence_a"]])
+
+# Create the new blocks csvs
+# V1 
+blocks_v1_recog <- read.csv(file.path(save_path, "blocks_V1.csv"),
+                            stringsAsFactors = FALSE)
+blocks_v1_recog$test_file <- sub("_test", "_test_recog", blocks_v1_recog$test_file)
+
+# Save CSV
+write.csv(blocks_v1_recog,
+          file = file.path(save_path, "blocks_V1_recog.csv"),
+          row.names = FALSE,
+          quote = FALSE)
+
+# V2 
+blocks_v2_recog <- read.csv(file.path(save_path, "blocks_V2.csv"),
+                            stringsAsFactors = FALSE)
+blocks_v2_recog$test_file <- sub("_test", "_test_recog", blocks_v2_recog$test_file)
+
+# Save updated CSV
+write.csv(blocks_v2_recog,
+          file = file.path(save_path, "blocks_V2_recog.csv"),
+          row.names = FALSE,
+          quote = FALSE)
+
+# -------------------------------
+# 3. Quick check
+# -------------------------------
+head(blocks_v1_recog)
+head(blocks_v2_recog)
+
+
+
