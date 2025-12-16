@@ -22,6 +22,7 @@ save_path <- "/Users/laurigurguryan/Desktop/InfoShuffleProject"
 # Sequences
 seq_numbers <- 1:10
 seq_letters <- letters[1:10]
+all_sequences <- c(paste0("sequence_", seq_numbers), paste0("sequence_", seq_letters))
 
 # Base categories with 5 options each
 base_categories <- list(
@@ -32,15 +33,18 @@ base_categories <- list(
   cat5 = paste0("cat5-", 1:5)
 )
 
-# Function to get sequence ID from filename
+# Subject folders
+subjects <- c("01", "02")
+
+# Get sequence ID from filename
 get_sequence_id <- function(filename, mapping_actuals) {
   matched <- mapping_actuals[sapply(mapping_actuals, function(x) grepl(x, filename))]
   if(length(matched) == 0) return(NA)
   return(matched[1])
 }
 
-# Function to combine left/right images, preserve original positions, and generate unique lures
-combine_images_with_lure <- function(seq_name, mapping_table, base_categories) {
+# Combine left/right images and generate unique lures
+combine_images_with_lure <- function(seq_name, mapping_table, base_categories, subject_folder, seed=NULL) {
   test_file <- file.path(save_path, paste0(seq_name, "_test.csv"))
   
   if(!file.exists(test_file)) {
@@ -48,9 +52,11 @@ combine_images_with_lure <- function(seq_name, mapping_table, base_categories) {
     return(NULL)
   }
   
+  if(!is.null(seed)) set.seed(seed)  
+  
   test_df <- read.csv(test_file, stringsAsFactors = FALSE)
   
-  # Stack left and right images
+  # Stack left/right images
   studied_image <- c(test_df$left_image, test_df$right_image)
   original_position <- c(test_df$left_original_position, test_df$right_original_position)
   
@@ -73,26 +79,34 @@ combine_images_with_lure <- function(seq_name, mapping_table, base_categories) {
     } else {
       n <- nrow(subdf)
       numbers <- rep(base_categories[[cat_name]], length.out = n)
-      numbers <- sample(numbers) # shuffle without replacement
+      numbers <- sample(numbers)  # reproducible if seed is set
       lure_base <- paste0(mapping_table$lure[match(sapply(subdf$studied_image, get_sequence_id, mapping_table$actual), mapping_table$actual)], "_stimuli/")
       subdf$lure <- paste0(lure_base, numbers)
     }
     subdf
   }))
   
-  # Drop temporary column
   combined_df$cat <- NULL
   
-  # Save CSV
-  out_file <- file.path(save_path, paste0(seq_name, "_test_recog.csv"))
+  # Create subject folder if it doesn't exist
+  subject_path <- file.path(save_path, subject_folder)
+  if(!dir.exists(subject_path)) dir.create(subject_path)
+  
+  # Save CSV inside subject folder with simplified filename
+  out_file <- file.path(subject_path, paste0(seq_name, "_test_recog.csv"))
   write.csv(combined_df, out_file, row.names = FALSE, quote = FALSE)
   
   message("Saved: ", out_file)
 }
 
-# Apply to all sequences
-all_sequences <- c(paste0("sequence_", seq_numbers), paste0("sequence_", seq_letters))
+# Generate files for subjecrts 
 
-for(seq_name in all_sequences) {
-  combine_images_with_lure(seq_name, mapping_table, base_categories)
+base_seed <- 1000 
+
+for(subject in subjects) {
+  for(seq_name in all_sequences) {
+    # deterministic seed per subject and sequence
+    seed <- base_seed + as.integer(factor(subject)) * 1000 + as.integer(factor(seq_name))
+    combine_images_with_lure(seq_name, mapping_table, base_categories, subject_folder = subject, seed = seed)
+  }
 }
