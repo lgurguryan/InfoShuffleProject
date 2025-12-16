@@ -36,7 +36,8 @@ base_categories <- list(
 )
 
 # Subjects
-subjects <- c("01", "02")
+#subjects <- c("01", "02")
+subjects <- sprintf("%02d", 1:10)
 
 # Get sequence ID
 get_sequence_id <- function(filename, mapping_actuals) {
@@ -190,7 +191,6 @@ for(subject in subjects) {
     # Save updated CSV in the subject folder
     out_file <- file.path(subject_folder_path, paste0("blocks_", version, "_recog.csv"))
     write.csv(blocks_df, out_file, row.names = FALSE, quote = FALSE)
-    
     message("Saved updated CSV for subject ", subject, ": ", out_file)
   }
 }
