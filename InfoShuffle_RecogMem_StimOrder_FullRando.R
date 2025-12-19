@@ -286,6 +286,9 @@ for (subj in 1:n_subjects) {
   )
   
 }  
+###########################
+### RECOGNITION MEMORY PART 
+##########################
 
 # Create mapping
 option1_seq <- 1:10
