@@ -2,7 +2,7 @@
 library(pwr)
 
 # Info 
-n_subjects <- 10 
+n_subjects <- 100 
 base_path <- "/Users/laurigurguryan/Desktop/InfoShuffleProject/SubjectFiles_RecogMemFullRando"
 base_seed <- 13  
 n_sequences <- 10
@@ -265,7 +265,7 @@ for (subj in 1:n_subjects) {
   
   # Update blocks csv to include the path on aussie for each subject
   
-  full_path_prefix <- paste0("/Users/aussie-dzmac/Documents/InfoShuffleProject/SubjectFiles_RecogMemFullRando/", subject_id, "/")
+  full_path_prefix <- paste0("/Users/halledz/Documents/InfoShuffleProject/RecogMem_W2026/SubjectFiles_RecogMemFullRando/", subject_id, "/")
   
   # Blocks_V1
   blocks_V1$csv_filename <- paste0(full_path_prefix, blocks_V1$csv_filename)
@@ -329,7 +329,7 @@ base_categories <- list(
 
 # Subjects
 #subjects <- c("01", "02")
-subjects <- sprintf("%02d", 1:10)
+subjects <- sprintf("%02d", 1:100)
 
 # Get sequence ID
 get_sequence_id <- function(filename, mapping_actuals) {
@@ -462,7 +462,7 @@ for(subject in subjects) {
 # Create the new blocks csvs
 # Loop over subjects and block versions
 block_versions <- c("V1", "V2")
-new_path_prefix <- "/Users/aussie-dzmac/Documents/InfoShuffleProject/SubjectFiles_TemMemFullRando"
+new_path_prefix <- "/Users/halledz/Documents/InfoShuffleProject/RecogMem_W2026/SubjectFiles_RecogMemFullRando"
 
 for(subject in subjects) {
   
