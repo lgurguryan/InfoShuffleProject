@@ -46,10 +46,29 @@ all_data <- all_data %>%
 all_data <- all_data %>%
   mutate(expVersion = sub("^[^_]+_", "", expName))
 
+# Remove NAs (if participant ID is NA)
+all_data <- all_data %>%
+  filter(!is.na(participant))
 
 # Number of participants
 num_unique_participants <- n_distinct(all_data$participant)
 cat("Number of participants:", num_unique_participants, "\n")
+
+unique_ids <- unique(all_data$participant)
+cat("Unique participant IDs:", paste(unique_ids, collapse = ", "), "\n")
+
+# Exclude 
+exclude_ids <- c(3, 123, 131, 136, 145, 157, 161, 174, 175, 182)
+
+all_data <- all_data[!(all_data$participant %in% exclude_ids), ]
+
+# Number of participants after excluding
+num_unique_participants_clean<- n_distinct(all_data$participant)
+cat("Number of participants after exclusion:", num_unique_participants_clean, "\n")
+
+unique_ids <- unique(all_data$participant)
+cat("Unique participant IDs after exclusion:", paste(unique_ids, collapse = ", "), "\n")
+
 
 ####################
 ## TIME ESTIMATES ##
@@ -214,7 +233,7 @@ pair_summary <- test_df %>%
 dodge <- position_dodge(width = 0.8)
 
 ggplot(pair_summary, aes(x = pairType, y = mean_corr, fill = condition)) +
-  geom_bar(stat = "identity", width = 0.7, position = dodge) +   # width < dodge width
+  geom_bar(stat = "identity", width = 0.7, position = dodge) +   
   geom_errorbar(aes(ymin = mean_corr - se_corr, ymax = mean_corr + se_corr),
                 width = 0.2, position = dodge) +
   facet_wrap(~pair_id, scales = "free_x") +
@@ -226,8 +245,60 @@ ggplot(pair_summary, aes(x = pairType, y = mean_corr, fill = condition)) +
   theme_minimal() +
   theme(legend.position = "top")
 
+# Across-boundary only
+ggplot(
+  pair_summary %>% filter(pairType == "across-boundary"),
+  aes(x = pairType, y = mean_corr, fill = condition)
+) +
+  geom_bar(stat = "identity", width = 0.7, position = dodge) +
+  geom_errorbar(aes(ymin = mean_corr - se_corr, ymax = mean_corr + se_corr),
+                width = 0.2, position = dodge) +
+  facet_wrap(~pair_id, scales = "free_x") +
+  labs(
+    x = "Pair type",
+    y = "Mean correct response",
+    title = "Mean correct response (Across-boundary pairs)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+
+# Within-boundary only
+ggplot(
+  pair_summary %>% filter(pairType == "within-boundary"),
+  aes(x = pairType, y = mean_corr, fill = condition)
+) +
+  geom_bar(stat = "identity", width = 0.7, position = dodge) +
+  geom_errorbar(aes(ymin = mean_corr - se_corr, ymax = mean_corr + se_corr),
+                width = 0.2, position = dodge) +
+  facet_wrap(~pair_id, scales = "free_x") +
+  labs(
+    x = "Pair type",
+    y = "Mean correct response",
+    title = "Mean correct response (Within-boundary pairs)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+
+# Test pairs where cond difference 
+ggplot(
+  pair_summary %>% filter(pair_id %in% c(2, 4, 6, 8)),
+  aes(x = condition, y = mean_corr, fill = condition)
+) +
+  geom_bar(stat = "identity", width = 0.7, position = dodge) +
+  geom_errorbar(aes(ymin = mean_corr - se_corr, ymax = mean_corr + se_corr),
+                width = 0.2, position = dodge) +
+  facet_wrap(~pair_id) +
+  labs(
+    x = "Condition",
+    y = "Mean correct response",
+    title = "Mean correct response for test pairs 2, 4, 6, 8"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+
 ##################
 # Reaction times #
+##################
 test_df <- test_df %>%
   mutate(TestLoop.TestResp.rt = as.numeric(TestLoop.TestResp.rt))
 
