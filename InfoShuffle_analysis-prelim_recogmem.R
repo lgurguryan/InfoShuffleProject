@@ -18,16 +18,14 @@ columns_to_keep <- c("participant", "block", "csv_filename", "test_file", "thisN
                      "estimated_seconds", "left_image", "right_image", 
                      "studied_image", "lure", "correct_answer", 
                      "TestLoop.TestResp.keys", "TestLoop.TestResp.corr", 	"TestLoop.TestResp.rt", 
-                     "DistractorLoop.thisRepN", "expName"
-)
+                     "DistractorLoop.thisRepN", "expName")
 
 # Read CSVs, select columns, and combine
 all_data <- do.call(rbind, lapply(csv_files, function(file) {
   df <- read.csv(file)
   
   df <- df[, intersect(columns_to_keep, names(df))]
-  return(df)
-}))
+  return(df)}))
 
 # Reorder columns exactly as in columns_to_keep
 all_data <- all_data[, columns_to_keep]
@@ -42,9 +40,7 @@ all_data <- all_data %>%
     condition = case_when(
       grepl("sequence_\\d+", csv_filename) ~ "shuffled",  # check if number
       grepl("sequence_[A-Za-z]+", csv_filename) ~ "blocked", # check if letter
-      TRUE ~ NA_character_  
-    )
-  )
+      TRUE ~ NA_character_   ))
 
 # Add versoin of experiment 
 all_data <- all_data %>%
@@ -62,7 +58,7 @@ unique_ids <- unique(all_data$participant)
 cat("Unique participant IDs:", paste(unique_ids, collapse = ", "), "\n")
 
 # Exclude 
-exclude_ids <- c(34, 40)
+exclude_ids <- c(03, 06, 34, 40, 56)
 
 all_data <- all_data[!(all_data$participant %in% exclude_ids), ]
 
@@ -166,11 +162,12 @@ time_estimates <- all_data %>%
     !is.na(estimated_minutes), estimated_minutes != "",
     !is.na(estimated_seconds), estimated_seconds != ""
   ) %>%
+  # Convert time estimates to numeric values
   mutate(
     estimated_minutes = as.numeric(estimated_minutes),
     estimated_seconds = as.numeric(estimated_seconds),
-    TotalDuration = estimated_minutes * 60 + estimated_seconds
-  )
+    # Convert minutes and seconds to total seconds
+    TotalDuration = estimated_minutes * 60 + estimated_seconds)
 
 # Avg per subject
 time_subject <- time_estimates %>%
@@ -185,12 +182,21 @@ time_condition_summary <- time_subject %>%
   group_by(condition) %>%
   summarise(
     mean_total = mean(mean_total, na.rm = TRUE),
-    sd_total = sd(mean_total, na.rm = TRUE),
     n = n(),
-    se_total = sd_total / sqrt(n),
     .groups = "drop"
   )
 
+time_condition_summary$sd_total <- tapply(
+  time_subject$mean_total,
+  time_subject$condition,
+  sd
+)
+
+# Standard error 
+time_condition_summary$se_total <- time_condition_summary$sd_total /
+  sqrt(time_condition_summary$n)
+
+#Print
 print(time_condition_summary)
 
 # Plot
@@ -227,6 +233,41 @@ ggplot(time_subject, aes(x = condition, y = mean_total, fill = condition)) +
   scale_color_manual(values = c("deepskyblue1", "orchid")) +
   theme_minimal() +
   theme(legend.position = "none")
+
+# bar plot
+ggplot(time_subject, aes(x = condition, y = mean_total, fill = condition)) +
+  stat_summary(
+    fun = mean,
+    geom = "bar",
+    alpha = 0.7 ) +
+  stat_summary(
+    fun.data = mean_se,
+    geom = "errorbar",
+    width = 0.2,
+    linewidth = 1.2) +
+  geom_line(
+    aes(group = participant),
+    color = "darkgray", 
+    alpha = 0.3) +
+    geom_jitter(
+    width = 0.1,
+    alpha = 0.3,
+    size = 2,
+    aes(color = condition)) +
+  scale_fill_manual(values = c(
+    "blocked" = "palegreen",
+    "shuffled" = "lightblue")) +
+  scale_color_manual(values = c(
+    "blocked" = "darkgreen",   
+    "shuffled" = "darkblue" )) +
+  labs(
+    title = "Average time estimates",
+    x = "Condition",
+    y = "Time (in ms)") +
+  theme_classic() +
+    guides(
+    fill = "none",
+    color = "none")
 
 # Stats (paired t-test)
 # Reshape to make wide 
@@ -288,6 +329,41 @@ ggplot(subject_stats, aes(x = condition, y = mean_corr)) +
   scale_color_manual(values = c("seagreen", "orange")) +
   theme_minimal() +
   theme(legend.position = "none")
+
+# Bar plot
+ggplot(subject_stats, aes(x = condition, y = mean_corr, fill = condition)) +
+  stat_summary(
+    fun = mean,
+    geom = "bar",
+    alpha = 0.7) +
+  stat_summary(
+    fun.data = mean_se,
+    geom = "errorbar",
+    width = 0.2,
+    linewidth = 1.2) +
+  geom_line(
+    aes(group = participant),
+    color = "darkgray",
+    alpha = 0.3) +
+  geom_jitter(
+    aes(color = condition),
+    width = 0.1,
+    alpha = 0.3,
+    size = 2) +
+  scale_fill_manual(values = c(
+    "blocked" = "springgreen3",
+    "shuffled" = "mediumorchid3")) +
+  scale_color_manual(values = c(
+    "blocked" = "forestgreen",
+    "shuffled" = "purple4")) +
+  labs(
+    title = "Mean recogntion memory accuracy",
+    x = "Condition",
+    y = "Mean proportion correct") +
+  theme_classic() +
+  guides(
+    fill = "none",
+    color = "none")
 
 # Stats (glmm - generalized linear mixed effects model; acc is binary)
 accuracy_lmm <- glmer(
