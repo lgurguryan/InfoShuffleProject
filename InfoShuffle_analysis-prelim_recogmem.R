@@ -218,6 +218,11 @@ ggplot(time_subject, aes(x = condition, y = mean_total)) +
 # Violin plot 
 ggplot(time_subject, aes(x = condition, y = mean_total, fill = condition)) +
   geom_violin(trim = FALSE, alpha = 0.4, color = "black") +
+  geom_line(
+    aes(group = participant),
+    color = "darkgray",
+    alpha = 0.3
+  ) +
   geom_jitter(aes(color = condition), width = 0.15, size = 3, alpha = 0.7) +
   stat_summary(fun = mean, geom = "point", shape = 18, size = 5, color = "black") +
   stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
